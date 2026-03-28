@@ -1,0 +1,14 @@
+{
+  "name": "tinysquash",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx http-server public -p 3000 -c-1",
+    "test": "node --test",
+    "deploy": "wrangler pages deploy public --project-name tinysquash"
+  },
+  "devDependencies": {
+    "wrangler": "^3.114.0"
+  }
+}
