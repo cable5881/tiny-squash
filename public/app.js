@@ -24,6 +24,14 @@ const elements = {
   progressBar: document.getElementById('progress-bar'),
   progressText: document.getElementById('progress-text'),
   statusText: document.getElementById('status-text'),
+  authLoading: document.getElementById('auth-loading'),
+  authAnonymous: document.getElementById('auth-anonymous'),
+  authUser: document.getElementById('auth-user'),
+  googleLoginBtn: document.getElementById('google-login-btn'),
+  logoutBtn: document.getElementById('logout-btn'),
+  userAvatar: document.getElementById('user-avatar'),
+  userName: document.getElementById('user-name'),
+  userEmail: document.getElementById('user-email'),
 };
 
 function bytesToHuman(size) {
@@ -101,6 +109,73 @@ function renderResults() {
   });
 
   updateCompareSection();
+}
+
+function setAuthLoading(loading) {
+  elements.authLoading.classList.toggle('hidden', !loading);
+  if (loading) {
+    elements.authAnonymous.classList.add('hidden');
+    elements.authUser.classList.add('hidden');
+  }
+}
+
+function renderAuth() {
+  const user = AppState.auth.user;
+  const loading = AppState.auth.loading;
+
+  setAuthLoading(loading);
+  if (loading) return;
+
+  if (user) {
+    elements.authAnonymous.classList.add('hidden');
+    elements.authUser.classList.remove('hidden');
+    elements.userAvatar.src = user.picture || 'https://www.gravatar.com/avatar/?d=mp';
+    elements.userName.textContent = user.name || user.email || 'Google 用户';
+    elements.userEmail.textContent = user.email || '';
+  } else {
+    elements.authUser.classList.add('hidden');
+    elements.authAnonymous.classList.remove('hidden');
+  }
+}
+
+async function loadCurrentUser() {
+  AppState.update({ auth: { loading: true, error: '' } });
+  try {
+    const response = await fetch('/api/auth/me', { credentials: 'include' });
+    const data = await response.json();
+    AppState.update({
+      auth: {
+        loading: false,
+        user: data.authenticated ? data.user : null,
+        error: '',
+      },
+    });
+  } catch (error) {
+    AppState.update({ auth: { loading: false, user: null, error: error.message } });
+  }
+}
+
+async function logout() {
+  elements.logoutBtn.disabled = true;
+  try {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    AppState.update({ auth: { user: null, loading: false, error: '' } });
+  } finally {
+    elements.logoutBtn.disabled = false;
+  }
+}
+
+function showAuthErrorFromUrl() {
+  const url = new URL(window.location.href);
+  const authError = url.searchParams.get('auth_error');
+  if (authError) {
+    elements.statusText.textContent = `Google 登录失败：${authError}`;
+    url.searchParams.delete('auth_error');
+    window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + url.hash);
+  }
 }
 
 async function compressSingle(image, options) {
@@ -216,10 +291,17 @@ function bindEvents() {
     if (!files.length) return;
     await Downloader.downloadAsZip(files);
   });
+
+  elements.googleLoginBtn?.addEventListener('click', () => {
+    window.location.href = '/api/auth/google/login';
+  });
+
+  elements.logoutBtn?.addEventListener('click', logout);
 }
 
 AppState.subscribe((state) => {
   renderResults();
+  renderAuth();
   elements.progressBar.style.width = `${state.ui.progress}%`;
   elements.progressText.textContent = `${state.ui.progress}%`;
   elements.compressAllBtn.disabled = state.ui.isProcessing || state.images.length === 0;
@@ -227,3 +309,6 @@ AppState.subscribe((state) => {
 
 bindEvents();
 renderResults();
+renderAuth();
+showAuthErrorFromUrl();
+loadCurrentUser();

@@ -12,6 +12,11 @@ export const AppState = {
     progress: 0,
     error: '',
   },
+  auth: {
+    user: null,
+    loading: true,
+    error: '',
+  },
   listeners: new Set(),
 
   subscribe(fn) {

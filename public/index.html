@@ -22,7 +22,23 @@
             纯前端在线图片压缩工具。上传图片、调节质量、对比效果、批量下载，所有处理都在浏览器本地完成。
           </p>
         </div>
-        <a class="github-link" href="https://github.com/cable5881/tiny-squash" target="_blank" rel="noreferrer">GitHub</a>
+        <div class="hero-actions">
+          <div id="auth-panel" class="auth-panel" aria-live="polite">
+            <div id="auth-loading" class="auth-loading">正在检查登录状态...</div>
+            <div id="auth-anonymous" class="auth-anonymous hidden">
+              <button id="google-login-btn" class="primary-btn">使用 Google 登录</button>
+            </div>
+            <div id="auth-user" class="auth-user hidden">
+              <img id="user-avatar" class="user-avatar" alt="用户头像" />
+              <div class="user-meta">
+                <strong id="user-name">-</strong>
+                <span id="user-email">-</span>
+              </div>
+              <button id="logout-btn" class="ghost-btn">退出登录</button>
+            </div>
+          </div>
+          <a class="github-link" href="https://github.com/cable5881/tiny-squash" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
       </header>
 
       <main class="grid-layout">

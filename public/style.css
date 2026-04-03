@@ -44,6 +44,67 @@ select {
   margin-bottom: 24px;
 }
 
+.hero-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.auth-panel {
+  min-width: 280px;
+  padding: 14px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
+}
+
+.auth-loading,
+.auth-anonymous,
+.auth-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-anonymous {
+  justify-content: flex-end;
+}
+
+.auth-user {
+  justify-content: space-between;
+}
+
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #edf2f7;
+}
+
+.user-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-meta strong,
+.user-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-meta span {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: var(--primary);
@@ -125,7 +186,8 @@ select {
 .file-meta,
 #status-text,
 .empty-state,
-.footer-note {
+.footer-note,
+.auth-loading {
   color: var(--muted);
 }
 
@@ -259,7 +321,8 @@ th {
 }
 
 .compare-card.hidden,
-.empty-state.hidden {
+.empty-state.hidden,
+.hidden {
   display: none;
 }
 
@@ -325,5 +388,14 @@ th {
 
   .hero {
     flex-direction: column;
+  }
+
+  .hero-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .auth-panel {
+    width: 100%;
   }
 }
