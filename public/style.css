@@ -399,3 +399,31 @@ th {
     width: 100%;
   }
 }
+/* 登录权限相关样式 */
+.upload-dropzone.disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+  border-color: #ff6b6b;
+}
+
+.login-required-prompt {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.login-required-prompt h3 {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.login-required-prompt p {
+  margin: 0 0 8px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
