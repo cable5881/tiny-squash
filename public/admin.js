@@ -1,5 +1,5 @@
 /**
- * admin.js — 管理后台逻辑
+ * admin.js — 管理后台逻辑（含套餐配置管理）
  */
 
 const els = {
@@ -16,11 +16,15 @@ const els = {
   visitPrev: document.getElementById('visit-prev'),
   visitNext: document.getElementById('visit-next'),
   visitPageInfo: document.getElementById('visit-page-info'),
+  plansContainer: document.getElementById('plans-container'),
+  plansSave: document.getElementById('plans-save'),
+  plansMsg: document.getElementById('plans-msg'),
 };
 
 let userPage = 1;
 let visitPage = 1;
 const PAGE_SIZE = 20;
+let plansData = [];
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -34,6 +38,12 @@ function roleBadge(role) {
   return `<span class="role-badge ${cls}">${label}</span>`;
 }
 
+function planBadge(plan) {
+  const cls = plan === 'pro' ? 'plan-pro' : 'plan-free';
+  const label = (plan || 'free').toUpperCase();
+  return `<span class="plan-badge ${cls}">${label}</span>`;
+}
+
 function truncate(str, len = 40) {
   if (!str) return '-';
   return str.length > len ? str.slice(0, len) + '...' : str;
@@ -43,6 +53,124 @@ function formatTime(t) {
   if (!t) return '-';
   return t.replace('T', ' ').replace('Z', '').slice(0, 19);
 }
+
+// ===== 套餐配置 =====
+const FIELD_DEFS = [
+  { key: 'label',          label: '显示名称',   type: 'text' },
+  { key: 'price_monthly',  label: '月费 ($)',   type: 'number', step: '0.1' },
+  { key: 'price_yearly',   label: '年费 ($)',   type: 'number', step: '0.1' },
+  { key: 'daily_limit',    label: '每日压缩次数', type: 'number', help: '-1=无限' },
+  { key: 'max_files',      label: '单次文件数',   type: 'number' },
+  { key: 'max_size_mb',    label: '单文件上限(MB)', type: 'number' },
+  { key: 'formats',        label: '支持格式 (JSON)', type: 'text', wide: true },
+  { key: 'batch_zip',      label: '批量ZIP下载', type: 'checkbox' },
+  { key: 'quality_locked', label: '锁定质量',   type: 'checkbox' },
+  { key: 'max_width',      label: '最大宽度设置', type: 'checkbox' },
+  { key: 'history_limit',  label: '历史记录条数', type: 'number', help: '-1=无限, 0=无' },
+];
+
+function renderPlanConfigs(plans) {
+  plansData = plans;
+  els.plansContainer.innerHTML = plans.map((p, idx) => {
+    const fields = FIELD_DEFS.map(f => {
+      const id = `plan-${idx}-${f.key}`;
+      let val = p[f.key];
+      if (f.key === 'formats' && typeof val === 'string') {
+        // keep as-is
+      } else if (f.key === 'formats') {
+        val = JSON.stringify(val);
+      }
+
+      if (f.type === 'checkbox') {
+        const checked = val ? 'checked' : '';
+        return `<label class="plan-field plan-field-check">
+          <input type="checkbox" id="${id}" data-idx="${idx}" data-key="${f.key}" ${checked} />
+          <span>${f.label}</span>
+        </label>`;
+      }
+
+      const helpHtml = f.help ? `<span class="field-help">${f.help}</span>` : '';
+      const wideClass = f.wide ? ' plan-field-wide' : '';
+      return `<div class="plan-field${wideClass}">
+        <label for="${id}">${f.label} ${helpHtml}</label>
+        <input type="${f.type}" id="${id}" data-idx="${idx}" data-key="${f.key}"
+               value="${escapeHtml(String(val ?? ''))}" ${f.step ? `step="${f.step}"` : ''} />
+      </div>`;
+    }).join('');
+
+    return `<div class="plan-config-card">
+      <div class="plan-config-header">
+        <span class="plan-config-key">${escapeHtml(p.plan_key)}</span>
+        <span class="plan-config-label">${escapeHtml(p.label)}</span>
+      </div>
+      <div class="plan-config-fields">${fields}</div>
+    </div>`;
+  }).join('');
+}
+
+function collectPlanData() {
+  return plansData.map((p, idx) => {
+    const result = { plan_key: p.plan_key };
+    for (const f of FIELD_DEFS) {
+      const el = document.getElementById(`plan-${idx}-${f.key}`);
+      if (!el) continue;
+      if (f.type === 'checkbox') {
+        result[f.key] = el.checked;
+      } else if (f.type === 'number') {
+        result[f.key] = Number(el.value) || 0;
+      } else {
+        result[f.key] = el.value;
+      }
+    }
+    return result;
+  });
+}
+
+function showPlanMsg(text, isError = false) {
+  els.plansMsg.textContent = text;
+  els.plansMsg.className = `plans-msg ${isError ? 'plans-msg-error' : 'plans-msg-ok'}`;
+  els.plansMsg.classList.remove('hidden');
+  setTimeout(() => els.plansMsg.classList.add('hidden'), 3000);
+}
+
+async function loadPlans() {
+  try {
+    const res = await fetch('/api/admin/plans', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.plans) renderPlanConfigs(data.plans);
+  } catch (err) {
+    console.error('加载套餐配置失败:', err);
+  }
+}
+
+async function savePlans() {
+  els.plansSave.disabled = true;
+  els.plansSave.textContent = '保存中...';
+  try {
+    const plans = collectPlanData();
+    const res = await fetch('/api/admin/plans', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plans }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showPlanMsg('保存成功！配置已即时生效。');
+      if (data.plans) renderPlanConfigs(data.plans);
+    } else {
+      showPlanMsg(data.error || '保存失败', true);
+    }
+  } catch (err) {
+    showPlanMsg('网络错误: ' + err.message, true);
+  } finally {
+    els.plansSave.disabled = false;
+    els.plansSave.textContent = '保存配置';
+  }
+}
+
+els.plansSave.addEventListener('click', savePlans);
 
 // ===== 用户列表 =====
 async function loadUsers(page = 1) {
@@ -74,6 +202,7 @@ function renderUsers(data) {
       <td>${escapeHtml(u.name) || '-'}</td>
       <td>${escapeHtml(u.email)}</td>
       <td>${roleBadge(u.role)}</td>
+      <td>${planBadge(u.plan)}</td>
       <td>${formatTime(u.created_at)}</td>
       <td>${formatTime(u.updated_at)}</td>
     </tr>
@@ -139,7 +268,7 @@ async function init() {
       return;
     }
     showContent();
-    await Promise.all([loadUsers(1), loadVisits(1)]);
+    await Promise.all([loadPlans(), loadUsers(1), loadVisits(1)]);
   } catch (err) {
     showDenied();
   }

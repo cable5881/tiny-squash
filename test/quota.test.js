@@ -26,7 +26,11 @@ class MockD1 {
     this.tables[table].push(row);
   }
 
-  _query(sql, bindings) { return null; }
+  _query(sql, bindings) {
+    // Default handler: plan_configs COUNT returns 0 (triggers seed insert)
+    if (sql.includes('COUNT') && sql.includes('plan_configs')) return { cnt: 0 };
+    return null;
+  }
   _queryAll(sql, bindings) { return []; }
 }
 
@@ -117,7 +121,10 @@ describe('initTables', () => {
 describe('upsertUser', () => {
   it('should return correct structure for new user', async () => {
     const db = new MockD1();
-    db._query = () => null; // no existing user
+    db._query = (sql) => {
+      if (sql.includes('COUNT') && sql.includes('plan_configs')) return { cnt: 0 };
+      return null; // no existing user
+    };
     const result = await upsertUser(db, {
       sub: 'google-123', email: 'test@example.com', name: 'Test', picture: 'https://pic.jpg',
     });
@@ -129,7 +136,10 @@ describe('upsertUser', () => {
 
   it('should return existing user info', async () => {
     const db = new MockD1();
-    db._query = () => ({ id: 42, role: 'user', plan: 'pro', plan_expires_at: null });
+    db._query = (sql) => {
+      if (sql.includes('COUNT') && sql.includes('plan_configs')) return { cnt: 0 };
+      return { id: 42, role: 'user', plan: 'pro', plan_expires_at: null };
+    };
     const result = await upsertUser(db, {
       sub: 'google-123', email: 'test@example.com', name: 'Test', picture: '',
     });
@@ -140,7 +150,10 @@ describe('upsertUser', () => {
 
   it('should set admin role for admin email', async () => {
     const db = new MockD1();
-    db._query = () => null;
+    db._query = (sql) => {
+      if (sql.includes('COUNT') && sql.includes('plan_configs')) return { cnt: 0 };
+      return null;
+    };
     const result = await upsertUser(db, {
       sub: 'google-admin', email: 'liqibo1994@gmail.com', name: 'Admin', picture: '',
     });
@@ -160,11 +173,6 @@ describe('getUserBySub', () => {
 describe('recordVisit', () => {
   it('should not throw', async () => {
     const db = new MockD1();
-    const mockRequest = {
-      headers: new Map([['cf-connecting-ip', '1.2.3.4'], ['user-agent', 'test']]),
-    };
-    mockRequest.headers.get = (k) => mockRequest.headers.has(k) ? mockRequest.headers.get(k) : '';
-    // fix get method
     const h = new Map([['cf-connecting-ip', '1.2.3.4'], ['user-agent', 'test']]);
     const req = { headers: { get: (k) => h.get(k) || '' } };
     await assert.doesNotReject(() => recordVisit(db, 1, 'test@test.com', 'Test', req));

@@ -1,8 +1,20 @@
 /**
- * D1 数据库工具 — 用户管理 & 访问记录 & 配额 & 压缩日志
+ * D1 数据库工具 — 用户管理 & 访问记录 & 配额 & 压缩日志 & 套餐配置
  */
 
 const ADMIN_EMAILS = ['liqibo1994@gmail.com'];
+
+/** 安全添加列（已存在则忽略） */
+async function safeAddColumn(db, table, column, definition) {
+  try {
+    await db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`).run();
+  } catch (e) {
+    // "duplicate column name" — 正常忽略
+    if (!e.message || !e.message.includes('duplicate column')) {
+      console.warn(`safeAddColumn ${table}.${column}:`, e.message);
+    }
+  }
+}
 
 /** 初始化数据库表（幂等） */
 export async function initTables(db) {
@@ -58,7 +70,32 @@ export async function initTables(db) {
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS plan_configs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        plan_key TEXT UNIQUE NOT NULL,
+        label TEXT NOT NULL DEFAULT '',
+        price_monthly REAL DEFAULT 0,
+        price_yearly REAL DEFAULT 0,
+        daily_limit INTEGER DEFAULT 0,
+        max_files INTEGER DEFAULT 1,
+        max_size_mb INTEGER DEFAULT 5,
+        formats TEXT DEFAULT '["image/jpeg"]',
+        batch_zip INTEGER DEFAULT 0,
+        quality_locked INTEGER DEFAULT 1,
+        max_width INTEGER DEFAULT 0,
+        history_limit INTEGER DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
+        updated_at TEXT DEFAULT (datetime('now'))
+      )
+    `),
   ]);
+
+  // ====== 迁移：为旧表补充缺失列 ======
+  // 旧版 users 表可能没有 plan / plan_expires_at / preferences 列
+  await safeAddColumn(db, 'users', 'plan', "TEXT DEFAULT 'free'");
+  await safeAddColumn(db, 'users', 'plan_expires_at', 'TEXT DEFAULT NULL');
+  await safeAddColumn(db, 'users', 'preferences', "TEXT DEFAULT '{}'");
 
   // 创建索引（忽略已存在错误）
   const indexes = [
@@ -70,6 +107,19 @@ export async function initTables(db) {
   ];
   for (const sql of indexes) {
     try { await db.prepare(sql).run(); } catch (_) { /* index may exist */ }
+  }
+
+  // ====== 初始化默认套餐配置（如果表为空）======
+  const count = await db.prepare('SELECT COUNT(*) as cnt FROM plan_configs').first();
+  if (count.cnt === 0) {
+    await db.batch([
+      db.prepare(`INSERT INTO plan_configs (plan_key, label, price_monthly, price_yearly, daily_limit, max_files, max_size_mb, formats, batch_zip, quality_locked, max_width, history_limit, sort_order)
+        VALUES ('guest', '游客', 0, 0, 3, 1, 5, '["image/jpeg"]', 0, 1, 0, 0, 0)`),
+      db.prepare(`INSERT INTO plan_configs (plan_key, label, price_monthly, price_yearly, daily_limit, max_files, max_size_mb, formats, batch_zip, quality_locked, max_width, history_limit, sort_order)
+        VALUES ('free', 'Free', 0, 0, 20, 5, 10, '["image/jpeg","image/png","image/webp"]', 0, 0, 0, 50, 1)`),
+      db.prepare(`INSERT INTO plan_configs (plan_key, label, price_monthly, price_yearly, daily_limit, max_files, max_size_mb, formats, batch_zip, quality_locked, max_width, history_limit, sort_order)
+        VALUES ('pro', 'Pro', 4.9, 34.9, -1, 20, 20, '["image/jpeg","image/png","image/webp","image/avif"]', 1, 0, 1, -1, 2)`),
+    ]);
   }
 }
 
@@ -145,12 +195,76 @@ export function getEffectivePlan(user) {
   return 'free';
 }
 
-/** 配额限制配置 */
-export const PLAN_LIMITS = {
+/** 硬编码兜底配额限制 */
+const DEFAULT_PLAN_LIMITS = {
   guest:  { daily: 3,  maxFiles: 1,  maxSizeMB: 5,  formats: ['image/jpeg'], batchZip: false, qualityLocked: true,  maxWidth: false, history: 0 },
   free:   { daily: 20, maxFiles: 5,  maxSizeMB: 10, formats: ['image/jpeg', 'image/png', 'image/webp'], batchZip: false, qualityLocked: false, maxWidth: false, history: 50 },
   pro:    { daily: -1, maxFiles: 20, maxSizeMB: 20, formats: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'], batchZip: true, qualityLocked: false, maxWidth: true, history: -1 },
 };
+
+/** 兼容旧导出 — 仍然提供静态 PLAN_LIMITS */
+export const PLAN_LIMITS = DEFAULT_PLAN_LIMITS;
+
+/** 从 DB 获取动态套餐配置，失败则使用硬编码默认值 */
+export async function getPlanLimitsFromDB(db) {
+  try {
+    const { results } = await db.prepare('SELECT * FROM plan_configs ORDER BY sort_order ASC').all();
+    if (!results || results.length === 0) return DEFAULT_PLAN_LIMITS;
+    const limits = {};
+    for (const row of results) {
+      let formats;
+      try { formats = JSON.parse(row.formats); } catch { formats = ['image/jpeg']; }
+      limits[row.plan_key] = {
+        daily: row.daily_limit,
+        maxFiles: row.max_files,
+        maxSizeMB: row.max_size_mb,
+        formats,
+        batchZip: !!row.batch_zip,
+        qualityLocked: !!row.quality_locked,
+        maxWidth: !!row.max_width,
+        history: row.history_limit,
+        priceMonthly: row.price_monthly,
+        priceYearly: row.price_yearly,
+        label: row.label,
+      };
+    }
+    return limits;
+  } catch (e) {
+    console.error('getPlanLimitsFromDB error:', e);
+    return DEFAULT_PLAN_LIMITS;
+  }
+}
+
+/** 获取所有套餐原始配置行 */
+export async function listPlanConfigs(db) {
+  const { results } = await db.prepare('SELECT * FROM plan_configs ORDER BY sort_order ASC').all();
+  return results || [];
+}
+
+/** 更新单个套餐配置 */
+export async function updatePlanConfig(db, planKey, config) {
+  const {
+    label, price_monthly, price_yearly, daily_limit,
+    max_files, max_size_mb, formats, batch_zip,
+    quality_locked, max_width, history_limit,
+  } = config;
+
+  const formatsStr = typeof formats === 'string' ? formats : JSON.stringify(formats);
+
+  await db.prepare(`
+    UPDATE plan_configs SET
+      label = ?, price_monthly = ?, price_yearly = ?, daily_limit = ?,
+      max_files = ?, max_size_mb = ?, formats = ?, batch_zip = ?,
+      quality_locked = ?, max_width = ?, history_limit = ?,
+      updated_at = datetime('now')
+    WHERE plan_key = ?
+  `).bind(
+    label, price_monthly, price_yearly, daily_limit,
+    max_files, max_size_mb, formatsStr, batch_zip ? 1 : 0,
+    quality_locked ? 1 : 0, max_width ? 1 : 0, history_limit,
+    planKey
+  ).run();
+}
 
 /** 获取今日用量 */
 export async function getDailyUsage(db, { userId, guestIp }) {

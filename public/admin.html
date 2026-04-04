@@ -13,7 +13,7 @@
         <div>
           <p class="eyebrow">🍊 Admin Dashboard</p>
           <h1 class="hero-title">TinySquash 管理后台</h1>
-          <p class="hero-copy">查看全量用户信息与访问记录</p>
+          <p class="hero-copy">查看全量用户信息、访问记录与套餐配置</p>
         </div>
         <div class="hero-actions">
           <a href="/" class="ghost-btn">← 返回首页</a>
@@ -34,7 +34,19 @@
       </div>
 
       <main id="admin-content" class="admin-content hidden">
-        <!-- 用户管理 -->
+
+        <!-- ====== 套餐配置 ====== -->
+        <section class="panel">
+          <div class="panel-title-row">
+            <h3>套餐权益配置</h3>
+            <button id="plans-save" class="primary-btn" style="padding:8px 20px; font-size:0.88rem;">保存配置</button>
+          </div>
+          <p style="color:var(--muted); font-size:0.88rem; margin:4px 0 16px;">修改后点击"保存配置"即时生效。daily_limit 设为 -1 表示无限。</p>
+          <div id="plans-container" class="plans-config-grid"></div>
+          <div id="plans-msg" class="plans-msg hidden"></div>
+        </section>
+
+        <!-- ====== 用户管理 ====== -->
         <section class="panel">
           <div class="panel-title-row">
             <h3>全量用户 <span id="user-total" class="badge">0</span></h3>
@@ -48,6 +60,7 @@
                   <th>昵称</th>
                   <th>邮箱</th>
                   <th>角色</th>
+                  <th>套餐</th>
                   <th>注册时间</th>
                   <th>最后更新</th>
                 </tr>
@@ -62,7 +75,7 @@
           </div>
         </section>
 
-        <!-- 访问记录 -->
+        <!-- ====== 访问记录 ====== -->
         <section class="panel">
           <div class="panel-title-row">
             <h3>访问记录 <span id="visit-total" class="badge">0</span></h3>
