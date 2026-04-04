@@ -1,5 +1,5 @@
 import { clearSessionCookie, getCookieMap, json, verifySession } from '../../_lib/auth.js';
-import { getUserRole, initTables } from '../../_lib/db.js';
+import { getUserBySub, getEffectivePlan, initTables, PLAN_LIMITS } from '../../_lib/db.js';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -8,21 +8,30 @@ export async function onRequestGet(context) {
   const session = await verifySession(token, env.SESSION_SECRET);
 
   if (!session) {
-    return json({ authenticated: false }, {
+    // 游客也返回 plan 信息
+    return json({
+      authenticated: false,
+      plan: 'guest',
+      limits: PLAN_LIMITS.guest,
+    }, {
       status: 200,
-      headers: {
-        'Set-Cookie': clearSessionCookie(),
-      },
+      headers: { 'Set-Cookie': clearSessionCookie() },
     });
   }
 
-  // 从 D1 获取最新角色（session 中的 role 可能过期）
   let role = session.role || 'user';
+  let plan = 'free';
+  let limits = PLAN_LIMITS.free;
+
   if (env.DB) {
     try {
       await initTables(env.DB);
-      const dbRole = await getUserRole(env.DB, session.sub);
-      if (dbRole) role = dbRole;
+      const user = await getUserBySub(env.DB, session.sub);
+      if (user) {
+        role = user.role;
+        plan = getEffectivePlan(user);
+        limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+      }
     } catch (err) {
       console.error('D1 role lookup error:', err);
     }
@@ -30,6 +39,8 @@ export async function onRequestGet(context) {
 
   return json({
     authenticated: true,
+    plan,
+    limits,
     user: {
       sub: session.sub,
       email: session.email,
@@ -39,6 +50,7 @@ export async function onRequestGet(context) {
       given_name: session.given_name,
       family_name: session.family_name,
       role,
+      plan,
     },
   });
 }

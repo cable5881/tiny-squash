@@ -14,6 +14,12 @@
   </head>
   <body>
     <div class="page-shell">
+      <!-- 升级横幅 -->
+      <div id="upgrade-banner" class="upgrade-banner hidden">
+        <span>🚀 升级 Pro 解锁无限压缩、批量下载和全格式支持 — </span>
+        <a href="/pricing.html"><strong>$2.9/月起</strong></a>
+      </div>
+
       <header class="hero">
         <div>
           <p class="eyebrow">🍊 Pure Frontend Image Compressor</p>
@@ -44,9 +50,16 @@
               </button>
             </div>
           </div>
+          <a href="/pricing.html" class="nav-link">定价</a>
           <a class="github-link" href="https://github.com/cable5881/tiny-squash" target="_blank" rel="noreferrer">GitHub</a>
         </nav>
       </header>
+
+      <!-- 配额提示条 -->
+      <div id="quota-banner" class="quota-banner hidden">
+        <span id="quota-text"></span>
+        <a href="/pricing.html" class="quota-upgrade-link">升级 Pro →</a>
+      </div>
 
       <main class="grid-layout">
         <section class="panel upload-panel">
@@ -75,6 +88,7 @@
                   <option value="image/jpeg">JPG</option>
                   <option value="image/png">PNG</option>
                   <option value="image/webp">WebP</option>
+                  <option value="image/avif" disabled>AVIF (Pro)</option>
                 </select>
               </label>
 
@@ -137,9 +151,8 @@
       <footer class="footer-note">
         <p>© 2026 TinySquash · 所有图片均在浏览器本地处理，不会上传到服务器。</p>
         <p class="footer-changelog">
-          <a href="https://github.com/cable5881/tiny-squash/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">
-            📋 查看最新更新日志
-          </a>
+          <a href="/pricing.html">定价方案</a> ·
+          <a href="https://github.com/cable5881/tiny-squash/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">📋 更新日志</a>
         </p>
       </footer>
     </div>

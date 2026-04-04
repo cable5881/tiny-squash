@@ -1,3 +1,4 @@
-/api/*        /api/:splat   200
-/admin.html   /admin.html   200
-/*            /index.html   200
+/admin.html /admin.html 200
+/profile.html /profile.html 200
+/pricing.html /pricing.html 200
+/* /index.html 200

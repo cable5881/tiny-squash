@@ -4,6 +4,49 @@
 
 ---
 
+## 2026-04-04 (v1.2)
+
+### 新增
+- **用户体系与配额系统**：
+  - 游客每天 3 次免费压缩，Free 用户 20 次/天，Pro 用户无限
+  - 角色权限矩阵：游客/Free/Pro/Admin，功能逐级解锁
+  - 配额检查 API (`/api/usage/check`) 和用量上报 API (`/api/usage/record`)
+  - `usage_daily` 表追踪每日用量，`compress_logs` 表记录压缩历史
+- **定价页面** (`/pricing.html`)：
+  - 游客 / Free / Pro 三列定价卡片，支持月付/年付切换
+  - 8 条 FAQ 常见问题（隐私、退款、格式、配额等）
+- **个人中心** (`/profile.html`)：
+  - 用户信息卡片（头像/昵称/邮箱/角色/Plan/注册时间）
+  - 使用统计面板（总压缩次数/节省空间/访问次数/今日剩余额度）
+  - 压缩历史记录（分页表格，支持清除）
+  - 账户操作（编辑昵称/退出登录/删除账户）
+- **升级转化弹窗**：配额用尽/文件数超限/文件过大/使用 Pro 功能时自动弹出
+- **首页升级横幅**：非 Pro 用户显示升级引导条
+- **首页配额提示条**：实时显示今日剩余压缩次数
+- **AVIF 格式支持**（Pro 专属）
+- **导航栏定价入口**：首页 header 新增"定价"链接
+- **头像/昵称可点击进入个人中心**
+
+### API 新增
+- `POST /api/usage/check` — 压缩前配额检查
+- `POST /api/usage/record` — 压缩后用量上报
+- `GET/PUT /api/user/profile` — 获取/更新用户信息
+- `GET/PUT /api/user/preferences` — 偏好设置（Pro 专属）
+- `GET/DELETE /api/user/compress-logs` — 压缩历史记录
+- `DELETE /api/user/account` — 删除账户
+
+### 数据库变更
+- `users` 表新增：`plan`, `plan_expires_at`, `preferences` 字段
+- 新增 `usage_daily` 表（每日用量追踪）
+- 新增 `compress_logs` 表（压缩历史记录）
+
+### 优化
+- `/api/auth/me` 返回 `plan` 和 `limits` 信息
+- 前端根据 plan 动态控制功能可用性（格式/质量/宽度/批量下载）
+- 游客无需登录即可使用基础压缩功能
+
+---
+
 ## 2026-04-04 (v1.1)
 
 ### 新增

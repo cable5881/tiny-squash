@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TinySquash — 个人中心</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">🍊 Profile</p>
+        <h1 class="hero-title">个人中心</h1>
+      </div>
+      <nav class="hero-nav">
+        <a href="/" class="github-link" style="background: var(--primary);">← 返回首页</a>
+      </nav>
+    </header>
+
+    <div id="profile-loading" class="admin-loading">
+      <div class="loading-spinner"></div>
+      <p>加载中...</p>
+    </div>
+
+    <div id="profile-login" class="panel hidden" style="text-align:center; padding: 60px 20px;">
+      <h2>请先登录</h2>
+      <p style="color: var(--muted); margin-bottom: 20px;">登录后即可查看个人中心</p>
+      <button onclick="window.location.href='/api/auth/google/login'" class="primary-btn">使用 Google 登录</button>
+    </div>
+
+    <main id="profile-content" class="hidden">
+      <!-- 用户信息卡片 -->
+      <section class="panel profile-card">
+        <div class="profile-info-row">
+          <img id="p-avatar" class="profile-avatar" alt="头像" />
+          <div class="profile-info">
+            <div class="profile-name-row">
+              <h2 id="p-name" class="profile-name"></h2>
+              <span id="p-role-badge" class="role-badge"></span>
+              <span id="p-plan-badge" class="plan-badge"></span>
+            </div>
+            <p id="p-email" class="profile-email"></p>
+            <p id="p-dates" class="profile-dates"></p>
+          </div>
+          <div class="profile-actions">
+            <button id="btn-edit-name" class="secondary-btn">编辑昵称</button>
+            <a href="/pricing.html" id="btn-upgrade" class="primary-btn hidden">升级 Pro</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- 统计面板 -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-value" id="s-compressions">0</span>
+          <span class="stat-label">总压缩次数</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="s-saved">0 B</span>
+          <span class="stat-label">节省空间</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="s-visits">0</span>
+          <span class="stat-label">访问次数</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="s-remaining">--</span>
+          <span class="stat-label">今日剩余额度</span>
+        </div>
+      </section>
+
+      <!-- 压缩历史 -->
+      <section class="panel">
+        <div class="panel-title-row" style="margin-bottom: 16px;">
+          <h3>压缩历史</h3>
+          <button id="btn-clear-logs" class="ghost-btn">清除全部</button>
+        </div>
+        <div id="logs-empty" class="empty-state">
+          <p>暂无压缩记录</p>
+        </div>
+        <div class="table-wrap">
+          <table id="logs-table" class="hidden">
+            <thead>
+              <tr>
+                <th>文件名</th>
+                <th>原始大小</th>
+                <th>压缩后</th>
+                <th>压缩率</th>
+                <th>格式</th>
+                <th>时间</th>
+              </tr>
+            </thead>
+            <tbody id="logs-body"></tbody>
+          </table>
+        </div>
+        <div id="logs-pagination" class="pagination hidden">
+          <button id="logs-prev" class="secondary-btn" disabled>上一页</button>
+          <span id="logs-page-info" class="page-info"></span>
+          <button id="logs-next" class="secondary-btn" disabled>下一页</button>
+        </div>
+      </section>
+
+      <!-- 危险区域 -->
+      <section class="panel danger-zone">
+        <h3>危险操作</h3>
+        <p style="color: var(--muted); margin: 8px 0 16px;">以下操作不可撤销，请谨慎操作。</p>
+        <div class="danger-actions">
+          <button id="btn-delete-account" class="danger-btn">删除账户</button>
+          <button id="btn-logout" class="danger-btn danger-btn-outline">退出登录</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer-note">
+      <p>© 2026 TinySquash · 所有图片均在浏览器本地处理，不会上传到服务器。</p>
+    </footer>
+  </div>
+
+  <script src="./profile.js" type="module"></script>
+</body>
+</html>

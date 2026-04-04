@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TinySquash — 定价方案</title>
+  <meta name="description" content="选择适合你的 TinySquash 方案，解锁无限图片压缩能力。" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">🍊 Pricing</p>
+        <h1 class="hero-title">选择适合你的方案</h1>
+        <p class="hero-copy">无论是偶尔使用还是专业需求，都有合适的选择。所有方案均享受浏览器本地处理的隐私保障。</p>
+      </div>
+      <nav class="hero-nav">
+        <a href="/" class="github-link" style="background: var(--primary);">← 返回首页</a>
+      </nav>
+    </header>
+
+    <!-- 月付/年付切换 -->
+    <div class="billing-toggle">
+      <button id="btn-monthly" class="toggle-btn active">月付</button>
+      <button id="btn-yearly" class="toggle-btn">年付 <span class="save-badge">省 40%</span></button>
+    </div>
+
+    <!-- 定价卡片 -->
+    <section class="pricing-grid">
+      <!-- Guest -->
+      <div class="pricing-card">
+        <div class="pricing-header">
+          <h3>游客</h3>
+          <p class="pricing-desc">无需注册，零门槛体验</p>
+        </div>
+        <div class="pricing-price">
+          <span class="price-amount">$0</span>
+          <span class="price-period">永久免费</span>
+        </div>
+        <ul class="pricing-features">
+          <li><span class="feat-icon">✓</span> 每天 <strong>3 次</strong>压缩</li>
+          <li><span class="feat-icon">✓</span> 单次 1 张图片</li>
+          <li><span class="feat-icon">✓</span> 单文件最大 5 MB</li>
+          <li><span class="feat-icon">✓</span> JPG 格式输出</li>
+          <li class="feat-disabled"><span class="feat-icon">✗</span> 质量调节（固定 80%）</li>
+          <li class="feat-disabled"><span class="feat-icon">✗</span> 批量 ZIP 下载</li>
+          <li class="feat-disabled"><span class="feat-icon">✗</span> 最大宽度设置</li>
+          <li class="feat-disabled"><span class="feat-icon">✗</span> 压缩历史记录</li>
+        </ul>
+        <div class="pricing-action">
+          <a href="/" class="pricing-btn pricing-btn-outline">开始使用</a>
+        </div>
+      </div>
+
+      <!-- Free -->
+      <div class="pricing-card">
+        <div class="pricing-header">
+          <h3>Free</h3>
+          <p class="pricing-desc">登录即享，满足日常需求</p>
+        </div>
+        <div class="pricing-price">
+          <span class="price-amount">$0</span>
+          <span class="price-period">注册免费</span>
+        </div>
+        <ul class="pricing-features">
+          <li><span class="feat-icon">✓</span> 每天 <strong>20 次</strong>压缩</li>
+          <li><span class="feat-icon">✓</span> 单次最多 5 张</li>
+          <li><span class="feat-icon">✓</span> 单文件最大 10 MB</li>
+          <li><span class="feat-icon">✓</span> JPG / PNG / WebP 格式</li>
+          <li><span class="feat-icon">✓</span> 自由调节压缩质量</li>
+          <li><span class="feat-icon">✓</span> 最近 50 条压缩记录</li>
+          <li class="feat-disabled"><span class="feat-icon">✗</span> 批量 ZIP 下载</li>
+          <li class="feat-disabled"><span class="feat-icon">✗</span> 偏好设置保存</li>
+        </ul>
+        <div class="pricing-action">
+          <a href="/" class="pricing-btn pricing-btn-outline">免费注册</a>
+        </div>
+      </div>
+
+      <!-- Pro -->
+      <div class="pricing-card pricing-card-featured">
+        <div class="pricing-popular">最受欢迎</div>
+        <div class="pricing-header">
+          <h3>Pro</h3>
+          <p class="pricing-desc">为专业用户打造，无任何限制</p>
+        </div>
+        <div class="pricing-price">
+          <span class="price-amount" id="pro-price">$4.9</span>
+          <span class="price-period" id="pro-period">/月</span>
+          <span class="price-annual-note hidden" id="pro-annual-note">$34.9/年（$2.9/月）</span>
+        </div>
+        <ul class="pricing-features">
+          <li><span class="feat-icon feat-pro">✓</span> <strong>无限</strong>压缩次数</li>
+          <li><span class="feat-icon feat-pro">✓</span> 单次最多 <strong>20 张</strong></li>
+          <li><span class="feat-icon feat-pro">✓</span> 单文件最大 <strong>20 MB</strong></li>
+          <li><span class="feat-icon feat-pro">✓</span> JPG / PNG / WebP / <strong>AVIF</strong></li>
+          <li><span class="feat-icon feat-pro">✓</span> 自由调节压缩质量</li>
+          <li><span class="feat-icon feat-pro">✓</span> 最大宽度设置</li>
+          <li><span class="feat-icon feat-pro">✓</span> 批量 ZIP 下载</li>
+          <li><span class="feat-icon feat-pro">✓</span> 无限压缩历史记录</li>
+          <li><span class="feat-icon feat-pro">✓</span> 偏好设置保存</li>
+        </ul>
+        <div class="pricing-action">
+          <button id="btn-upgrade-pro" class="pricing-btn pricing-btn-primary">立即升级</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq-section">
+      <h2 class="faq-title">常见问题</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>图片会上传到服务器吗？</summary>
+          <p>不会。所有图片的压缩和格式转换都在你的浏览器本地完成（使用 Canvas API），图片数据不会离开你的设备。我们的服务器仅存储你的账户信息和使用统计。</p>
+        </details>
+        <details class="faq-item">
+          <summary>Free 和 Pro 的压缩质量有区别吗？</summary>
+          <p>没有。压缩算法完全相同，Pro 解锁的是使用次数、批量处理、更多格式（如 AVIF）和偏好保存等<strong>效率功能</strong>，压缩质量本身无差异。</p>
+        </details>
+        <details class="faq-item">
+          <summary>未登录也能用吗？</summary>
+          <p>可以。游客每天有 3 次免费额度，注册登录后提升到 20 次/天。如果你是高频用户，Pro 方案提供无限次数。</p>
+        </details>
+        <details class="faq-item">
+          <summary>可以用什么方式付费？</summary>
+          <p>支持国际信用卡（Visa、MasterCard、American Express）和 PayPal。支付由 Stripe 安全处理，我们不存储你的支付信息。</p>
+        </details>
+        <details class="faq-item">
+          <summary>付费后如何退款？</summary>
+          <p>购买后 <strong>7 天内</strong>无条件退款。可在个人中心的订阅管理中自行操作，或联系我们的支持邮箱。</p>
+        </details>
+        <details class="faq-item">
+          <summary>年付方案中途可以取消吗？</summary>
+          <p>可以随时取消。取消后仍可使用到当前计费周期结束，不会立即失效。年付方案按整年计费，中途取消不退差价。</p>
+        </details>
+        <details class="faq-item">
+          <summary>每日额度什么时候重置？</summary>
+          <p>每天 UTC 00:00（北京时间早上 8:00）自动重置。</p>
+        </details>
+        <details class="faq-item">
+          <summary>AVIF 格式有什么优势？</summary>
+          <p>AVIF 是新一代图片格式，在相同视觉质量下通常比 WebP 再小 20-30%。Pro 方案支持输出 AVIF 格式，适合追求极致压缩率的用户。</p>
+        </details>
+      </div>
+    </section>
+
+    <footer class="footer-note">
+      <p>© 2026 TinySquash · 所有图片均在浏览器本地处理，不会上传到服务器。</p>
+      <p class="footer-changelog">
+        <a href="https://github.com/cable5881/tiny-squash/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">📋 查看最新更新日志</a>
+      </p>
+    </footer>
+  </div>
+
+  <script src="./pricing.js" type="module"></script>
+</body>
+</html>

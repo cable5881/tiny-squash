@@ -14,6 +14,8 @@ export const AppState = {
   },
   auth: {
     user: null,
+    plan: 'guest',
+    limits: null,
     loading: true,
     error: '',
   },
