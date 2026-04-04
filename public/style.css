@@ -36,6 +36,7 @@ select {
   padding: 32px 0 48px;
 }
 
+/* ===== Header ===== */
 .hero {
   display: flex;
   justify-content: space-between;
@@ -44,21 +45,17 @@ select {
   margin-bottom: 24px;
 }
 
-.hero-actions {
+.hero-nav {
   display: flex;
-  align-items: flex-end;
-  gap: 16px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
+/* ===== Auth Panel — 简洁内联样式 ===== */
 .auth-panel {
-  min-width: 280px;
-  padding: 14px 16px;
-  border: 1px solid var(--panel-border);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
 }
 
 .auth-loading,
@@ -66,43 +63,96 @@ select {
 .auth-user {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.auth-anonymous {
-  justify-content: flex-end;
+/* 加载动画 */
+.auth-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--panel-border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 登录按钮 — 带 Google 图标的简洁按钮 */
+.auth-login-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.auth-login-btn:hover {
+  border-color: #c0c8d4;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+  transform: translateY(-1px);
+}
+
+.auth-login-btn .google-icon {
+  flex-shrink: 0;
+}
+
+/* 已登录状态 — 头像 + 昵称 + 退出小图标 */
 .auth-user {
-  justify-content: space-between;
+  gap: 8px;
 }
 
 .user-avatar {
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
   background: #edf2f7;
+  border: 2px solid var(--panel-border);
 }
 
-.user-meta {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.user-meta strong,
-.user-meta span {
+.user-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.user-meta span {
+/* 退出按钮 — 仅图标 */
+.auth-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
   color: var(--muted);
-  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.auth-logout-btn:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
 .eyebrow {
@@ -131,15 +181,21 @@ select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 110px;
-  padding: 12px 18px;
+  padding: 8px 18px;
   border-radius: 999px;
   background: #0f172a;
   color: #fff;
   text-decoration: none;
   font-weight: 600;
+  font-size: 0.88rem;
+  transition: background 0.15s ease;
 }
 
+.github-link:hover {
+  background: #1e293b;
+}
+
+/* ===== Grid Layout ===== */
 .grid-layout {
   display: grid;
   grid-template-columns: 420px 1fr;
@@ -186,7 +242,7 @@ select {
 .file-meta,
 #status-text,
 .empty-state,
-.footer-note,
+.footer-note p:first-child,
 .auth-loading {
   color: var(--muted);
 }
@@ -332,12 +388,15 @@ th {
   border-radius: 18px;
   background: #e5e7eb;
   min-height: 320px;
+  max-height: 480px;
 }
 
 .compare-wrapper img {
   display: block;
   width: 100%;
   height: auto;
+  max-height: 480px;
+  object-fit: contain;
   user-select: none;
   pointer-events: none;
 }
@@ -348,6 +407,13 @@ th {
   width: 50%;
   overflow: hidden;
   border-right: 2px solid rgba(255, 255, 255, 0.9);
+  max-height: 480px;
+}
+
+.compare-overlay img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
 }
 
 .compare-compressed {
@@ -376,11 +442,28 @@ th {
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
 }
 
+/* ===== Footer ===== */
 .footer-note {
   margin-top: 20px;
   text-align: center;
 }
 
+.footer-changelog {
+  margin-top: 6px;
+}
+
+.footer-changelog a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: color 0.15s ease;
+}
+
+.footer-changelog a:hover {
+  color: var(--primary);
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 960px) {
   .grid-layout {
     grid-template-columns: 1fr;
@@ -390,37 +473,17 @@ th {
     flex-direction: column;
   }
 
-  .hero-actions {
+  .hero-nav {
     width: 100%;
-    align-items: stretch;
-  }
-
-  .auth-panel {
-    width: 100%;
+    justify-content: flex-end;
   }
 }
-/* 登录权限相关样式 */
-.upload-dropzone.disabled {
+
+/* ===== 登录权限相关 ===== */
+.drop-zone.disabled {
   pointer-events: none;
   cursor: not-allowed;
   border-color: #ff6b6b;
-}
-
-.login-required-prompt {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.login-required-prompt h3 {
-  margin: 0 0 12px 0;
-  font-size: 20px;
-  color: #333;
-}
-
-.login-required-prompt p {
-  margin: 0 0 8px 0;
-  color: #666;
-  font-size: 14px;
 }
 
 button:disabled {
@@ -428,9 +491,7 @@ button:disabled {
   cursor: not-allowed !important;
 }
 
-/* ===== 图片缩略图 & 对比预览尺寸约束 ===== */
-
-/* 结果表格中的缩略图 — 固定小尺寸 */
+/* ===== 图片缩略图约束 ===== */
 .preview-thumb {
   width: 48px;
   height: 48px;
@@ -442,7 +503,6 @@ button:disabled {
   background: #f1f5f9;
 }
 
-/* 表格文件名单元格 — 横向排列缩略图+文件名 */
 td:first-child {
   display: flex;
   align-items: center;
@@ -454,24 +514,4 @@ td .filename {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 200px;
-}
-
-/* 对比预览区域 — 限制最大高度 */
-.compare-wrapper {
-  max-height: 480px;
-}
-
-.compare-wrapper img {
-  max-height: 480px;
-  object-fit: contain;
-}
-
-.compare-overlay {
-  max-height: 480px;
-}
-
-.compare-overlay img {
-  width: 100%;
-  max-height: 480px;
-  object-fit: contain;
 }

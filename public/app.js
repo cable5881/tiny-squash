@@ -31,7 +31,6 @@ const elements = {
   logoutBtn: document.getElementById('logout-btn'),
   userAvatar: document.getElementById('user-avatar'),
   userName: document.getElementById('user-name'),
-  userEmail: document.getElementById('user-email'),
 };
 
 function bytesToHuman(size) {
@@ -176,7 +175,6 @@ function renderAuth() {
     elements.authUser.classList.remove('hidden');
     elements.userAvatar.src = user.picture || 'https://www.gravatar.com/avatar/?d=mp';
     elements.userName.textContent = user.name || user.email || 'Google 用户';
-    elements.userEmail.textContent = user.email || '';
   } else {
     elements.authUser.classList.add('hidden');
     elements.authAnonymous.classList.remove('hidden');
