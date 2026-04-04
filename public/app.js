@@ -8,9 +8,9 @@ const compressor = new ImageCompressor();
 let compareSlider;
 
 const elements = {
-  uploadDropzone: document.getElementById('upload-dropzone'),
+  uploadDropzone: document.getElementById('drop-zone'),
   fileInput: document.getElementById('file-input'),
-  qualitySlider: document.getElementById('quality-slider'),
+  qualitySlider: document.getElementById('quality-range'),
   qualityValue: document.getElementById('quality-value'),
   formatSelect: document.getElementById('format-select'),
   maxWidthInput: document.getElementById('max-width'),
@@ -249,7 +249,7 @@ async function compressAll() {
   if (!checkAuth()) return;
 
   const options = {
-    quality: parseInt(elements.qualitySlider.value, 10),
+    quality: parseFloat(elements.qualitySlider.value),
     outputFormat: elements.formatSelect.value,
     maxWidth: parseInt(elements.maxWidthInput.value, 10) || undefined,
   };
@@ -295,7 +295,7 @@ function bindEvents() {
   });
 
   elements.qualitySlider.addEventListener('input', (e) => {
-    elements.qualityValue.textContent = `${e.target.value}%`;
+    elements.qualityValue.textContent = `${Math.round(e.target.value * 100)}%`;
   });
 
   elements.compressAllBtn.addEventListener('click', compressAll);
