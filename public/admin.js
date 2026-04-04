@@ -55,63 +55,114 @@ function formatTime(t) {
 }
 
 // ===== 套餐配置 =====
-const FIELD_DEFS = [
-  { key: 'label',          label: '显示名称',   type: 'text' },
-  { key: 'price_monthly',  label: '月费 ($)',   type: 'number', step: '0.1' },
-  { key: 'price_yearly',   label: '年费 ($)',   type: 'number', step: '0.1' },
-  { key: 'daily_limit',    label: '每日压缩次数', type: 'number', help: '-1=无限' },
-  { key: 'max_files',      label: '单次文件数',   type: 'number' },
-  { key: 'max_size_mb',    label: '单文件上限(MB)', type: 'number' },
-  { key: 'formats',        label: '支持格式 (JSON)', type: 'text', wide: true },
-  { key: 'batch_zip',      label: '批量ZIP下载', type: 'checkbox' },
-  { key: 'quality_locked', label: '锁定质量',   type: 'checkbox' },
-  { key: 'max_width',      label: '最大宽度设置', type: 'checkbox' },
-  { key: 'history_limit',  label: '历史记录条数', type: 'number', help: '-1=无限, 0=无' },
+// 按组分类字段
+const FIELD_GROUPS = [
+  {
+    title: '基本信息',
+    icon: '📋',
+    fields: [
+      { key: 'label', label: '显示名称', type: 'text', placeholder: '如: Pro' },
+    ],
+  },
+  {
+    title: '定价',
+    icon: '💰',
+    fields: [
+      { key: 'price_monthly', label: '月费 ($)', type: 'number', step: '0.1', placeholder: '0' },
+      { key: 'price_yearly',  label: '年费 ($)', type: 'number', step: '0.1', placeholder: '0' },
+    ],
+  },
+  {
+    title: '用量限额',
+    icon: '📊',
+    fields: [
+      { key: 'daily_limit',   label: '每日压缩次数',   type: 'number', help: '-1 = 无限制', placeholder: '20' },
+      { key: 'max_files',     label: '单次最大文件数',  type: 'number', placeholder: '5' },
+      { key: 'max_size_mb',   label: '单文件大小上限 (MB)', type: 'number', placeholder: '10' },
+      { key: 'history_limit', label: '历史记录条数',    type: 'number', help: '-1 = 无限, 0 = 关闭', placeholder: '50' },
+    ],
+  },
+  {
+    title: '支持格式',
+    icon: '🖼️',
+    fields: [
+      { key: 'formats', label: '格式列表 (JSON 数组)', type: 'text', wide: true, placeholder: '["image/jpeg","image/png","image/webp"]' },
+    ],
+  },
+  {
+    title: '功能开关',
+    icon: '⚙️',
+    fields: [
+      { key: 'batch_zip',      label: '批量 ZIP 下载',  type: 'checkbox' },
+      { key: 'quality_locked', label: '锁定质量 (禁止调节)', type: 'checkbox' },
+      { key: 'max_width',      label: '允许设置最大宽度', type: 'checkbox' },
+    ],
+  },
 ];
+
+// 套餐主题色
+const PLAN_THEMES = {
+  guest: { color: '#64748b', bg: '#f8fafc', border: '#e2e8f0', icon: '👤' },
+  free:  { color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', icon: '🆓' },
+  pro:   { color: '#ea580c', bg: '#fff7ed', border: '#fed7aa', icon: '⭐' },
+};
 
 function renderPlanConfigs(plans) {
   plansData = plans;
+
   els.plansContainer.innerHTML = plans.map((p, idx) => {
-    const fields = FIELD_DEFS.map(f => {
-      const id = `plan-${idx}-${f.key}`;
-      let val = p[f.key];
-      if (f.key === 'formats' && typeof val === 'string') {
-        // keep as-is
-      } else if (f.key === 'formats') {
-        val = JSON.stringify(val);
-      }
+    const theme = PLAN_THEMES[p.plan_key] || PLAN_THEMES.free;
 
-      if (f.type === 'checkbox') {
-        const checked = val ? 'checked' : '';
-        return `<label class="plan-field plan-field-check">
-          <input type="checkbox" id="${id}" data-idx="${idx}" data-key="${f.key}" ${checked} />
-          <span>${f.label}</span>
-        </label>`;
-      }
+    const groupsHtml = FIELD_GROUPS.map(group => {
+      const fieldsHtml = group.fields.map(f => {
+        const id = `plan-${idx}-${f.key}`;
+        let val = p[f.key];
+        if (f.key === 'formats' && typeof val !== 'string') {
+          val = JSON.stringify(val);
+        }
 
-      const helpHtml = f.help ? `<span class="field-help">${f.help}</span>` : '';
-      const wideClass = f.wide ? ' plan-field-wide' : '';
-      return `<div class="plan-field${wideClass}">
-        <label for="${id}">${f.label} ${helpHtml}</label>
-        <input type="${f.type}" id="${id}" data-idx="${idx}" data-key="${f.key}"
-               value="${escapeHtml(String(val ?? ''))}" ${f.step ? `step="${f.step}"` : ''} />
+        if (f.type === 'checkbox') {
+          const checked = val ? 'checked' : '';
+          return `<label class="pc-switch-row">
+            <span class="pc-switch-label">${f.label}</span>
+            <input type="checkbox" id="${id}" data-idx="${idx}" data-key="${f.key}" ${checked} class="pc-toggle" />
+          </label>`;
+        }
+
+        const helpHtml = f.help ? `<span class="pc-hint">${f.help}</span>` : '';
+        const wideClass = f.wide ? ' pc-field-wide' : '';
+        return `<div class="pc-field${wideClass}">
+          <label class="pc-label" for="${id}">${f.label}${helpHtml}</label>
+          <input type="${f.type}" id="${id}" data-idx="${idx}" data-key="${f.key}"
+                 class="pc-input" value="${escapeHtml(String(val ?? ''))}"
+                 placeholder="${f.placeholder || ''}" ${f.step ? `step="${f.step}"` : ''} />
+        </div>`;
+      }).join('');
+
+      return `<div class="pc-group">
+        <div class="pc-group-title"><span>${group.icon}</span> ${group.title}</div>
+        <div class="pc-group-fields">${fieldsHtml}</div>
       </div>`;
     }).join('');
 
-    return `<div class="plan-config-card">
-      <div class="plan-config-header">
-        <span class="plan-config-key">${escapeHtml(p.plan_key)}</span>
-        <span class="plan-config-label">${escapeHtml(p.label)}</span>
+    return `<div class="pc-card" style="--plan-color:${theme.color}; --plan-bg:${theme.bg}; --plan-border:${theme.border};">
+      <div class="pc-card-header">
+        <div class="pc-card-icon">${theme.icon}</div>
+        <div class="pc-card-title-wrap">
+          <span class="pc-card-key">${escapeHtml(p.plan_key).toUpperCase()}</span>
+          <span class="pc-card-name">${escapeHtml(p.label)}</span>
+        </div>
       </div>
-      <div class="plan-config-fields">${fields}</div>
+      <div class="pc-card-body">${groupsHtml}</div>
     </div>`;
   }).join('');
 }
 
 function collectPlanData() {
+  const allFields = FIELD_GROUPS.flatMap(g => g.fields);
   return plansData.map((p, idx) => {
     const result = { plan_key: p.plan_key };
-    for (const f of FIELD_DEFS) {
+    for (const f of allFields) {
       const el = document.getElementById(`plan-${idx}-${f.key}`);
       if (!el) continue;
       if (f.type === 'checkbox') {
