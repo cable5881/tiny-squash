@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TinySquash — 管理后台</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./admin.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="admin-header">
+        <div>
+          <h1 class="admin-title">TinySquash 管理后台</h1>
+          <p class="admin-subtitle">查看全量用户信息与访问记录</p>
+        </div>
+        <a href="/" class="ghost-btn admin-back-btn">← 返回首页</a>
+      </header>
+
+      <div id="admin-loading" class="admin-loading">正在验证权限...</div>
+      <div id="admin-denied" class="admin-denied hidden">
+        <h2>⛔ 无权访问</h2>
+        <p>仅管理员可查看管理后台。</p>
+        <a href="/" class="primary-btn">返回首页</a>
+      </div>
+
+      <main id="admin-content" class="admin-content hidden">
+        <!-- 用户管理 -->
+        <section class="admin-section">
+          <div class="admin-section-header">
+            <h2>全量用户 <span id="user-total" class="badge">0</span></h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>头像</th>
+                  <th>昵称</th>
+                  <th>邮箱</th>
+                  <th>角色</th>
+                  <th>注册时间</th>
+                  <th>最后更新</th>
+                </tr>
+              </thead>
+              <tbody id="user-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <button id="user-prev" class="ghost-btn" disabled>上一页</button>
+            <span id="user-page-info">第 1 页</span>
+            <button id="user-next" class="ghost-btn" disabled>下一页</button>
+          </div>
+        </section>
+
+        <!-- 访问记录 -->
+        <section class="admin-section">
+          <div class="admin-section-header">
+            <h2>访问记录 <span id="visit-total" class="badge">0</span></h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>昵称</th>
+                  <th>邮箱</th>
+                  <th>角色</th>
+                  <th>IP</th>
+                  <th>User-Agent</th>
+                  <th>访问时间</th>
+                </tr>
+              </thead>
+              <tbody id="visit-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <button id="visit-prev" class="ghost-btn" disabled>上一页</button>
+            <span id="visit-page-info">第 1 页</span>
+            <button id="visit-next" class="ghost-btn" disabled>下一页</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer-note">
+        <p>© 2026 TinySquash · 管理后台</p>
+      </footer>
+    </div>
+  </body>
+</html>

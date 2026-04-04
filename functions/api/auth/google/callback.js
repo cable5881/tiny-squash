@@ -7,6 +7,7 @@ import {
   redirect,
   signSession,
 } from '../../../_lib/auth.js';
+import { initTables, upsertUser, recordVisit } from '../../../_lib/db.js';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -37,6 +38,7 @@ export async function onRequestGet(context) {
   const baseUrl = getBaseUrl(request, env);
   const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
+  // 用 code 换 token
   const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -60,6 +62,7 @@ export async function onRequestGet(context) {
     return json({ error: 'missing_access_token' }, { status: 502 });
   }
 
+  // 获取用户信息
   const profileResponse = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -70,6 +73,26 @@ export async function onRequestGet(context) {
   }
 
   const profile = await profileResponse.json();
+
+  // D1: 初始化表 + 写入/更新用户 + 记录访问
+  let role = 'user';
+  if (env.DB) {
+    try {
+      await initTables(env.DB);
+      const userResult = await upsertUser(env.DB, {
+        sub: profile.sub,
+        email: profile.email,
+        name: profile.name,
+        picture: profile.picture,
+      });
+      role = userResult.role;
+      await recordVisit(env.DB, userResult.userId, profile.email, profile.name, request);
+    } catch (err) {
+      console.error('D1 error:', err);
+      // D1 出错不影响登录流程
+    }
+  }
+
   const sessionPayload = {
     sub: profile.sub,
     email: profile.email,
@@ -78,6 +101,7 @@ export async function onRequestGet(context) {
     picture: profile.picture,
     given_name: profile.given_name,
     family_name: profile.family_name,
+    role,
     exp: Date.now() + 1000 * 60 * 60 * 24 * 7,
   };
 

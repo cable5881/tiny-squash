@@ -8,9 +8,9 @@
       name="description"
       content="纯前端在线图片压缩工具，支持 JPG、PNG、WebP 压缩与格式转换，所有处理都在浏览器本地完成。"
     />
-    <link rel="stylesheet" href="./style.css?v=mnjwfj2f" />
+    <link rel="stylesheet" href="./style.css?v=mnjxgumx" />
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
-    <script type="module" src="./app.js?v=mnjwfj2f" defer></script>
+    <script type="module" src="./app.js?v=mnjxgumx" defer></script>
   </head>
   <body>
     <div class="page-shell">
@@ -36,6 +36,9 @@
             <div id="auth-user" class="auth-user hidden">
               <img id="user-avatar" class="user-avatar" alt="用户头像" />
               <span id="user-name" class="user-name">-</span>
+              <a id="admin-link" href="/admin.html" class="admin-link hidden" title="管理后台">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              </a>
               <button id="logout-btn" class="auth-logout-btn" title="退出登录">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               </button>

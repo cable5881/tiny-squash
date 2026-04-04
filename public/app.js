@@ -31,6 +31,7 @@ const elements = {
   logoutBtn: document.getElementById('logout-btn'),
   userAvatar: document.getElementById('user-avatar'),
   userName: document.getElementById('user-name'),
+  adminLink: document.getElementById('admin-link'),
 };
 
 function bytesToHuman(size) {
@@ -175,9 +176,16 @@ function renderAuth() {
     elements.authUser.classList.remove('hidden');
     elements.userAvatar.src = user.picture || 'https://www.gravatar.com/avatar/?d=mp';
     elements.userName.textContent = user.name || user.email || 'Google 用户';
+    // 管理员入口
+    if (elements.adminLink) {
+      elements.adminLink.classList.toggle('hidden', user.role !== 'admin');
+    }
   } else {
     elements.authUser.classList.add('hidden');
     elements.authAnonymous.classList.remove('hidden');
+    if (elements.adminLink) {
+      elements.adminLink.classList.add('hidden');
+    }
   }
 
   // 新增：更新按钮状态
