@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler pages dev public --compatibility-date=2026-04-03",
+    "build": "node build.js",
     "test": "node --test",
-    "deploy": "wrangler pages deploy public --project-name tinysquash"
+    "deploy": "npm run build && wrangler pages deploy public --project-name tinysquash"
   },
   "devDependencies": {
     "wrangler": "^3.114.0"
