@@ -1,5 +1,5 @@
 /**
- * D1 数据库工具 — 用户管理 & 访问记录 & 配额 & 压缩日志 & 套餐配置
+ * D1 数据库工具 — 用户管理 & 访问记录 & 配额 & 压缩日志 & 套餐配置 & 订阅 & 支付日志
  */
 
 const ADMIN_EMAILS = ['liqibo1994@gmail.com'];
@@ -89,6 +89,36 @@ export async function initTables(db) {
         updated_at TEXT DEFAULT (datetime('now'))
       )
     `),
+    // ===== PayPal 订阅表 =====
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        paypal_subscription_id TEXT UNIQUE NOT NULL,
+        paypal_plan_id TEXT DEFAULT '',
+        cycle TEXT DEFAULT 'monthly' CHECK(cycle IN ('monthly', 'yearly')),
+        status TEXT DEFAULT 'PENDING',
+        current_period_end TEXT DEFAULT NULL,
+        activated_at TEXT DEFAULT NULL,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `),
+    // ===== PayPal 支付日志表 =====
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS payment_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        paypal_subscription_id TEXT DEFAULT '',
+        event_type TEXT NOT NULL,
+        amount TEXT DEFAULT '0',
+        currency TEXT DEFAULT 'USD',
+        paypal_payment_id TEXT DEFAULT '',
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `),
   ]);
 
   // ====== 迁移：为旧表补充缺失列 ======
@@ -97,6 +127,9 @@ export async function initTables(db) {
   await safeAddColumn(db, 'users', 'plan_expires_at', 'TEXT DEFAULT NULL');
   await safeAddColumn(db, 'users', 'preferences', "TEXT DEFAULT '{}'");
 
+  // subscriptions 表可能需要 updated_at（旧表补列）
+  await safeAddColumn(db, 'subscriptions', 'updated_at', "TEXT DEFAULT (datetime('now'))");
+
   // 创建索引（忽略已存在错误）
   const indexes = [
     `CREATE UNIQUE INDEX IF NOT EXISTS idx_usage_user_date ON usage_daily(user_id, date) WHERE user_id IS NOT NULL`,
@@ -104,6 +137,10 @@ export async function initTables(db) {
     `CREATE INDEX IF NOT EXISTS idx_compress_logs_user ON compress_logs(user_id)`,
     `CREATE INDEX IF NOT EXISTS idx_compress_logs_created ON compress_logs(created_at)`,
     `CREATE INDEX IF NOT EXISTS idx_visits_user ON visits(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_subscriptions_paypal ON subscriptions(paypal_subscription_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_payment_logs_user ON payment_logs(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_payment_logs_sub ON payment_logs(paypal_subscription_id)`,
   ];
   for (const sql of indexes) {
     try { await db.prepare(sql).run(); } catch (_) { /* index may exist */ }
@@ -378,6 +415,8 @@ export async function updateUserName(db, sub, name) {
 /** 删除用户账户及所有关联数据 */
 export async function deleteUserAccount(db, userId) {
   await db.batch([
+    db.prepare('DELETE FROM payment_logs WHERE user_id = ?').bind(userId),
+    db.prepare('DELETE FROM subscriptions WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM compress_logs WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM visits WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM usage_daily WHERE user_id = ?').bind(userId),

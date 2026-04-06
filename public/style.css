@@ -853,3 +853,166 @@ button:disabled { opacity: 0.5 !important; cursor: not-allowed !important; }
   color: #dc2626;
 }
 
+
+/* ===== Payment Notification Banner ===== */
+.payment-notify {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  animation: notify-slide-down 0.3s ease-out;
+}
+.payment-notify.hidden { display: none; }
+
+@keyframes notify-slide-down {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+.payment-notify-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 640px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.payment-notify-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.payment-notify-msg {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.payment-notify-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.3rem;
+  color: inherit;
+  opacity: 0.5;
+  padding: 0 4px;
+  line-height: 1;
+}
+.payment-notify-close:hover { opacity: 1; }
+
+/* Variants */
+.notify-success .payment-notify-inner {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.notify-success .payment-notify-icon { background: #22c55e; }
+
+.notify-error .payment-notify-inner {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+.notify-error .payment-notify-icon { background: #ef4444; }
+
+.notify-warning .payment-notify-inner {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+.notify-warning .payment-notify-icon { background: #f59e0b; }
+
+.notify-info .payment-notify-inner {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+.notify-info .payment-notify-icon { background: #3b82f6; }
+
+/* ===== Subscription Management Section (Profile) ===== */
+.sub-panel {
+  margin-top: 24px;
+}
+.sub-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #fff7ed 0%, #fff 60%);
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+}
+.sub-info { flex: 1; }
+.sub-info h4 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  color: var(--heading);
+}
+.sub-info p {
+  margin: 2px 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+.sub-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.sub-status-active { background: #dcfce7; color: #166534; }
+.sub-status-cancelled { background: #fef3c7; color: #92400e; }
+.sub-status-pending { background: #e0e7ff; color: #3730a3; }
+.sub-status-expired { background: #f3f4f6; color: #6b7280; }
+.sub-status-suspended { background: #fef2f2; color: #991b1b; }
+
+.sub-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-cancel-sub {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid #fca5a5;
+  background: #fff;
+  color: #dc2626;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-cancel-sub:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+.btn-cancel-sub:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .sub-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

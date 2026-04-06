@@ -109,12 +109,50 @@ describe('getEffectivePlan', () => {
   it('should return pro for admin regardless of plan', () => {
     assert.equal(getEffectivePlan({ plan: 'free', role: 'admin' }), 'pro');
   });
+
+  it('should return pro for non-expired pro plan', () => {
+    const future = new Date(Date.now() + 86400000 * 30).toISOString();
+    assert.equal(getEffectivePlan({ plan: 'pro', role: 'user', plan_expires_at: future }), 'pro');
+  });
+
+  it('should return pro for pro plan without expires_at', () => {
+    assert.equal(getEffectivePlan({ plan: 'pro', role: 'user', plan_expires_at: null }), 'pro');
+  });
 });
 
 describe('initTables', () => {
   it('should not throw', async () => {
     const db = new MockD1();
     await assert.doesNotReject(() => initTables(db));
+  });
+
+  it('should create subscriptions and payment_logs tables', async () => {
+    const db = new MockD1();
+    const sqls = [];
+    const origPrepare = db.prepare.bind(db);
+    db.prepare = function(sql) {
+      sqls.push(sql);
+      return origPrepare(sql);
+    };
+    await initTables(db);
+    const allSql = sqls.join('\n');
+    assert.ok(allSql.includes('subscriptions'), 'should create subscriptions table');
+    assert.ok(allSql.includes('payment_logs'), 'should create payment_logs table');
+  });
+
+  it('should create subscription indexes', async () => {
+    const db = new MockD1();
+    const sqls = [];
+    const origPrepare = db.prepare.bind(db);
+    db.prepare = function(sql) {
+      sqls.push(sql);
+      return origPrepare(sql);
+    };
+    await initTables(db);
+    const allSql = sqls.join('\n');
+    assert.ok(allSql.includes('idx_subscriptions_user'), 'should create user index');
+    assert.ok(allSql.includes('idx_subscriptions_paypal'), 'should create paypal index');
+    assert.ok(allSql.includes('idx_payment_logs_user'), 'should create payment_logs user index');
   });
 });
 
@@ -281,5 +319,60 @@ describe('deleteUserAccount', () => {
   it('should not throw', async () => {
     const db = new MockD1();
     await assert.doesNotReject(() => deleteUserAccount(db, 1));
+  });
+
+  it('should delete subscription and payment data', async () => {
+    const db = new MockD1();
+    const deletedTables = [];
+    const origPrepare = db.prepare.bind(db);
+    db.prepare = function(sql) {
+      if (sql.includes('DELETE')) {
+        const match = sql.match(/FROM\s+(\w+)/);
+        if (match) deletedTables.push(match[1]);
+      }
+      return origPrepare(sql);
+    };
+    await deleteUserAccount(db, 1);
+    assert.ok(deletedTables.includes('payment_logs'), 'should delete payment_logs');
+    assert.ok(deletedTables.includes('subscriptions'), 'should delete subscriptions');
+    assert.ok(deletedTables.includes('compress_logs'), 'should delete compress_logs');
+    assert.ok(deletedTables.includes('visits'), 'should delete visits');
+    assert.ok(deletedTables.includes('usage_daily'), 'should delete usage_daily');
+    assert.ok(deletedTables.includes('users'), 'should delete users');
+  });
+});
+
+// ===== PayPal Module Tests =====
+describe('PayPal module', () => {
+  it('should export getPayPalBase', async () => {
+    const { getPayPalBase } = await import('../functions/_lib/paypal.js');
+    assert.equal(typeof getPayPalBase, 'function');
+  });
+
+  it('getPayPalBase should return sandbox URL by default', async () => {
+    const { getPayPalBase } = await import('../functions/_lib/paypal.js');
+    assert.equal(getPayPalBase({}), 'https://api-m.sandbox.paypal.com');
+    assert.equal(getPayPalBase({ PAYPAL_MODE: 'sandbox' }), 'https://api-m.sandbox.paypal.com');
+  });
+
+  it('getPayPalBase should return live URL for live mode', async () => {
+    const { getPayPalBase } = await import('../functions/_lib/paypal.js');
+    assert.equal(getPayPalBase({ PAYPAL_MODE: 'live' }), 'https://api-m.paypal.com');
+  });
+
+  it('getPayPalBase should fallback to sandbox for unknown mode', async () => {
+    const { getPayPalBase } = await import('../functions/_lib/paypal.js');
+    assert.equal(getPayPalBase({ PAYPAL_MODE: 'unknown' }), 'https://api-m.sandbox.paypal.com');
+  });
+
+  it('should export all expected functions', async () => {
+    const paypal = await import('../functions/_lib/paypal.js');
+    const expected = [
+      'getPayPalBase', 'getAccessToken', 'ensureProduct', 'ensurePlan',
+      'createSubscription', 'getSubscription', 'cancelSubscription', 'verifyWebhookSignature',
+    ];
+    for (const name of expected) {
+      assert.equal(typeof paypal[name], 'function', `should export ${name}`);
+    }
   });
 });

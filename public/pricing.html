@@ -10,6 +10,15 @@
 <body>
   <div class="page-shell pricing-page">
 
+    <!-- Payment notification banner -->
+    <div id="payment-notify" class="payment-notify hidden">
+      <div class="payment-notify-inner">
+        <span id="payment-notify-icon" class="payment-notify-icon"></span>
+        <span id="payment-notify-msg" class="payment-notify-msg"></span>
+        <button id="payment-notify-close" class="payment-notify-close">&times;</button>
+      </div>
+    </div>
+
     <!-- Hero -->
     <div class="pricing-hero">
       <a href="/" class="pricing-back">← 返回首页</a>
@@ -67,7 +76,7 @@
         </details>
         <details class="faq-item">
           <summary>可以用什么方式付费？</summary>
-          <p>支持 Visa、MasterCard、American Express 和 PayPal。支付由 Stripe 安全处理。</p>
+          <p>支持通过 PayPal 支付，包括 PayPal 余额、绑定的信用卡（Visa、MasterCard、American Express）和借记卡。订阅自动续费，可随时取消。</p>
         </details>
         <details class="faq-item">
           <summary>付费后如何退款？</summary>

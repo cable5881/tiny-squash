@@ -4,6 +4,44 @@
 
 ---
 
+## 2026-04-06 (v1.4)
+
+### 新增
+- **PayPal 订阅支付集成**：
+  - 支持 PayPal 自动订阅模式（Subscriptions API v1），月付/年付双周期
+  - 后端 PayPal API 客户端（`functions/_lib/paypal.js`）：OAuth 认证、Product/Plan 创建（幂等）、订阅创建/查询/取消、Webhook 签名验证
+  - `POST /api/paypal/create-subscription` — 创建订阅并返回 PayPal 审批链接
+  - `GET /api/paypal/return` — PayPal 回调处理，激活订阅并升级用户
+  - `POST /api/paypal/webhook` — Webhook 端点，处理续费/取消/暂停/过期事件
+  - `GET /api/user/subscription` — 获取当前用户订阅信息
+  - `POST /api/user/subscription/cancel` — 取消订阅（保留权益至周期结束）
+- **数据库新增表**：
+  - `subscriptions` — 订阅记录（PayPal 订阅 ID、周期、状态、到期时间等）
+  - `payment_logs` — 支付日志（事件类型、金额、PayPal 交易 ID 等）
+- **定价页 PayPal 流程**：
+  - 点击"升级 Pro"自动创建订阅并跳转 PayPal 审批页
+  - 支持月付/年付切换，价格从数据库动态读取
+  - 支付成功/取消/错误的通知横幅（顶部滑入动画）
+  - URL 参数自动处理支付结果并清理
+- **个人中心订阅管理**：
+  - 新增"订阅管理"面板，显示订阅状态、周期、到期时间
+  - 支持取消订阅操作，取消后保留 Pro 权益至当前周期结束
+  - 过期/取消状态显示"重新订阅"入口
+
+### 改进
+- 定价页 FAQ 更新：支付方式说明由 Stripe 改为 PayPal
+- 删除账户时同步清理订阅和支付日志数据
+- 数据库迁移新增订阅相关索引
+- 测试用例增至 40 条（新增 PayPal 模块、订阅表、删除清理等测试）
+
+### 环境变量（新增）
+- `PAYPAL_CLIENT_ID` — PayPal Client ID
+- `PAYPAL_CLIENT_SECRET` — PayPal Client Secret
+- `PAYPAL_MODE` — `sandbox` | `live`（默认 sandbox）
+- `PAYPAL_WEBHOOK_ID` — PayPal Webhook ID（生产环境签名验证）
+
+---
+
 ## 2026-04-04 (v1.3)
 
 ### 修复

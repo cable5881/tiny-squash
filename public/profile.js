@@ -39,6 +39,7 @@ async function loadProfile() {
     renderProfile(data);
     loadLogs(1);
     loadQuota();
+    loadSubscription();
   } catch (err) {
     $('profile-loading').classList.add('hidden');
     $('profile-login').classList.remove('hidden');
@@ -94,6 +95,126 @@ async function loadQuota() {
     }
   } catch (_) {}
 }
+
+// ========================
+// Subscription Management
+// ========================
+
+async function loadSubscription() {
+  try {
+    const res = await fetch('/api/user/subscription', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    renderSubscription(data.subscription);
+  } catch (_) {}
+}
+
+function renderSubscription(sub) {
+  const section = $('subscription-section');
+  const content = $('sub-content');
+  if (!section || !content) return;
+
+  if (!sub) {
+    // No subscription — show nothing or a prompt
+    section.classList.add('hidden');
+    return;
+  }
+
+  section.classList.remove('hidden');
+
+  const statusLabels = {
+    ACTIVE: '生效中',
+    PENDING: '待激活',
+    CANCELLED: '已取消',
+    EXPIRED: '已过期',
+    SUSPENDED: '已暂停',
+    APPROVAL_PENDING: '待审批',
+  };
+
+  const statusClass = {
+    ACTIVE: 'sub-status-active',
+    PENDING: 'sub-status-pending',
+    CANCELLED: 'sub-status-cancelled',
+    EXPIRED: 'sub-status-expired',
+    SUSPENDED: 'sub-status-suspended',
+    APPROVAL_PENDING: 'sub-status-pending',
+  };
+
+  const cycleLabel = sub.cycle === 'yearly' ? '年付' : '月付';
+  const statusText = statusLabels[sub.status] || sub.status;
+  const statusCls = statusClass[sub.status] || 'sub-status-pending';
+  const periodEnd = sub.current_period_end ? formatDate(sub.current_period_end) : '--';
+  const activatedAt = sub.activated_at ? formatDate(sub.activated_at) : '--';
+  const canCancel = sub.status === 'ACTIVE' || sub.status === 'APPROVAL_PENDING';
+
+  content.innerHTML = `
+    <div class="sub-card">
+      <div class="sub-info">
+        <h4>TinySquash Pro · ${cycleLabel} <span class="sub-status ${statusCls}">${statusText}</span></h4>
+        <p>订阅 ID: ${sub.paypal_subscription_id || '--'}</p>
+        <p>激活时间: ${activatedAt}</p>
+        ${sub.status === 'CANCELLED'
+          ? `<p>Pro 权益保留至: <strong>${periodEnd}</strong></p>`
+          : `<p>当前周期截止: ${periodEnd}</p>`
+        }
+      </div>
+      <div class="sub-actions">
+        ${canCancel
+          ? `<button id="btn-cancel-subscription" class="btn-cancel-sub">取消订阅</button>`
+          : sub.status === 'CANCELLED' || sub.status === 'EXPIRED'
+            ? `<a href="/pricing.html" class="primary-btn" style="font-size:0.88rem; padding:8px 18px;">重新订阅</a>`
+            : ''
+        }
+      </div>
+    </div>
+  `;
+
+  // Bind cancel
+  const cancelBtn = $('btn-cancel-subscription');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', handleCancelSubscription);
+  }
+}
+
+async function handleCancelSubscription() {
+  if (!confirm('确定要取消订阅吗？\n\n取消后，Pro 权益将保留至当前计费周期结束。')) return;
+
+  const btn = $('btn-cancel-subscription');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '取消中...';
+  }
+
+  try {
+    const res = await fetch('/api/user/subscription/cancel', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || '取消失败，请稍后重试');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '取消订阅';
+      }
+      return;
+    }
+
+    alert(`订阅已取消。Pro 权益保留至 ${data.proUntil ? formatDate(data.proUntil) : '当前周期结束'}。`);
+    loadSubscription(); // Refresh
+  } catch (err) {
+    alert('操作失败: ' + (err.message || '网络错误'));
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '取消订阅';
+    }
+  }
+}
+
+// ========================
+// Compress Logs
+// ========================
 
 async function loadLogs(page) {
   logsPage = page;

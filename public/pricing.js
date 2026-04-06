@@ -1,5 +1,5 @@
 /**
- * pricing.js — 动态渲染定价页（从 /api/plans 获取配置）
+ * pricing.js — 动态渲染定价页（从 /api/plans 获取配置）+ PayPal 订阅集成
  */
 
 const btnMonthly = document.getElementById('btn-monthly');
@@ -163,23 +163,148 @@ btnYearly.addEventListener('click', () => {
   render();
 });
 
-// Upgrade click
+// ========================
+// PayPal Subscription Flow
+// ========================
+
 async function handleUpgrade() {
+  const upgradeBtn = document.getElementById('btn-upgrade-pro');
+
   try {
-    const res = await fetch('/api/auth/me', { credentials: 'include' });
-    const data = await res.json();
-    if (!data.authenticated) {
+    // 1. Check auth
+    const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+    const meData = await meRes.json();
+
+    if (!meData.authenticated) {
+      // Redirect to login, then come back
       window.location.href = '/api/auth/google/login';
       return;
     }
-    if (data.plan === 'pro') {
-      alert('你已经是 Pro 用户了！');
+
+    if (meData.plan === 'pro') {
+      showNotification('info', '你已经是 Pro 用户了！无需重复订阅。');
       return;
     }
-    alert('支付功能即将上线，敬请期待！\n\nPayment integration coming soon.');
-  } catch {
-    alert('网络错误，请稍后重试');
+
+    // 2. Disable button and show loading state
+    if (upgradeBtn) {
+      upgradeBtn.disabled = true;
+      upgradeBtn.textContent = '正在跳转到 PayPal...';
+    }
+
+    // 3. Create PayPal subscription
+    const res = await fetch('/api/paypal/create-subscription', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cycle: billingCycle }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || '创建订阅失败');
+    }
+
+    if (!data.approveUrl) {
+      throw new Error('未获取到 PayPal 支付链接');
+    }
+
+    // 4. Redirect to PayPal for approval
+    window.location.href = data.approveUrl;
+
+  } catch (err) {
+    console.error('Upgrade error:', err);
+    showNotification('error', err.message || '支付流程出错，请稍后重试');
+
+    // Restore button
+    if (upgradeBtn) {
+      upgradeBtn.disabled = false;
+      upgradeBtn.textContent = '升级 Pro';
+    }
   }
 }
 
+// ========================
+// Payment Result Handling
+// ========================
+
+function showNotification(type, message) {
+  const notify = document.getElementById('payment-notify');
+  const icon = document.getElementById('payment-notify-icon');
+  const msg = document.getElementById('payment-notify-msg');
+  const closeBtn = document.getElementById('payment-notify-close');
+
+  if (!notify) return;
+
+  // Remove old type classes
+  notify.classList.remove('notify-success', 'notify-error', 'notify-info', 'notify-warning');
+
+  switch (type) {
+    case 'success':
+      notify.classList.add('notify-success');
+      icon.textContent = '✓';
+      break;
+    case 'error':
+      notify.classList.add('notify-error');
+      icon.textContent = '✗';
+      break;
+    case 'info':
+      notify.classList.add('notify-info');
+      icon.textContent = 'ℹ';
+      break;
+    case 'warning':
+      notify.classList.add('notify-warning');
+      icon.textContent = '⚠';
+      break;
+  }
+
+  msg.textContent = message;
+  notify.classList.remove('hidden');
+
+  // Auto-dismiss after 8 seconds
+  const timer = setTimeout(() => {
+    notify.classList.add('hidden');
+  }, 8000);
+
+  closeBtn.onclick = () => {
+    clearTimeout(timer);
+    notify.classList.add('hidden');
+  };
+}
+
+function handlePaymentResult() {
+  const params = new URLSearchParams(window.location.search);
+  const payment = params.get('payment');
+  const errorMsg = params.get('msg');
+
+  if (!payment) return;
+
+  switch (payment) {
+    case 'success':
+      showNotification('success', '🎉 订阅成功！你已升级为 Pro 用户，享受无限压缩体验。');
+      break;
+    case 'cancelled':
+      showNotification('warning', '你取消了 PayPal 支付。如需订阅，可随时点击"升级 Pro"。');
+      break;
+    case 'error': {
+      const messages = {
+        missing_id: '支付回调参数缺失，请重试。',
+        not_logged_in: '登录状态已失效，请重新登录后再试。',
+        user_not_found: '用户不存在，请重新登录。',
+        subscription_not_active: '订阅尚未激活，请稍后刷新页面或联系支持。',
+        internal: '服务器内部错误，请稍后重试。',
+      };
+      showNotification('error', messages[errorMsg] || '支付出现问题，请稍后重试。');
+      break;
+    }
+  }
+
+  // Clean URL
+  const cleanUrl = window.location.pathname;
+  window.history.replaceState({}, '', cleanUrl);
+}
+
+// Init
+handlePaymentResult();
 loadPlans();
