@@ -2,6 +2,7 @@
  * GET /api/paypal/return
  * 
  * PayPal 用户同意后的回调。激活订阅并升级用户 plan。
+ * PayPal 会自动在 return_url 后附加 subscription_id 和 ba_token 参数。
  */
 import { redirect, json, getCookieMap, verifySession } from '../../_lib/auth.js';
 import { initTables, getUserBySub } from '../../_lib/db.js';
@@ -10,12 +11,8 @@ import { getAccessToken, getSubscription } from '../../_lib/paypal.js';
 export async function onRequestGet(context) {
   const { request, env } = context;
   const url = new URL(request.url);
-  const subscriptionId = url.searchParams.get('subscription_id');
+  let subscriptionId = url.searchParams.get('subscription_id');
   const baseUrl = env.APP_BASE_URL || url.origin;
-
-  if (!subscriptionId) {
-    return redirect(`${baseUrl}/pricing.html?payment=error&msg=missing_id`);
-  }
 
   // 鉴权
   const cookies = getCookieMap(request);
@@ -30,6 +27,23 @@ export async function onRequestGet(context) {
     const user = await getUserBySub(env.DB, session.sub);
     if (!user) {
       return redirect(`${baseUrl}/pricing.html?payment=error&msg=user_not_found`);
+    }
+
+    // 如果 PayPal 没有附加 subscription_id，从 DB 查找用户最新的 PENDING 订阅
+    if (!subscriptionId) {
+      const pending = await env.DB.prepare(
+        `SELECT paypal_subscription_id FROM subscriptions
+         WHERE user_id = ? AND status = 'PENDING'
+         ORDER BY created_at DESC LIMIT 1`
+      ).bind(user.id).first();
+
+      if (pending) {
+        subscriptionId = pending.paypal_subscription_id;
+      }
+    }
+
+    if (!subscriptionId) {
+      return redirect(`${baseUrl}/pricing.html?payment=error&msg=missing_id`);
     }
 
     // 查询 PayPal 订阅状态

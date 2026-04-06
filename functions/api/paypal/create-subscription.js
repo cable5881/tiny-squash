@@ -50,7 +50,7 @@ export async function onRequestPost(context) {
     const baseUrl = env.APP_BASE_URL || new URL(request.url).origin;
     const subscription = await createSubscription(
       env, token, planId, user.id,
-      `${baseUrl}/api/paypal/return?subscription_id={subscription_id}`,
+      `${baseUrl}/api/paypal/return`,
       `${baseUrl}/pricing.html?payment=cancelled`,
     );
 
