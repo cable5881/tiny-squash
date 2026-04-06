@@ -223,6 +223,7 @@ button:disabled { opacity: 0.5 !important; cursor: not-allowed !important; }
 .plan-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; margin-left: 6px; }
 .plan-free { background: #eff3f9; color: var(--muted); }
 .plan-pro { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
+.plan-admin { background: linear-gradient(135deg, #ede9fe, #c4b5fd); color: #5b21b6; }
 
 /* ===== Profile Page ===== */
 .profile-card { margin-bottom: 24px; }

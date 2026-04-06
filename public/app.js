@@ -36,6 +36,7 @@ const elements = {
   quotaBanner: document.getElementById('quota-banner'),
   quotaText: document.getElementById('quota-text'),
   upgradeBanner: document.getElementById('upgrade-banner'),
+  planBadge: document.getElementById('plan-badge'),
 };
 
 function bytesToHuman(size) {
@@ -309,11 +310,28 @@ function renderAuth() {
     if (elements.adminLink) {
       elements.adminLink.classList.toggle('hidden', user.role !== 'admin');
     }
+    // Plan badge
+    if (elements.planBadge) {
+      const plan = getCurrentPlan();
+      const badgeConfig = {
+        pro:   { text: "Pro",   cls: "plan-pro" },
+        admin: { text: "Admin", cls: "plan-admin" },
+        free:  { text: "Free",  cls: "plan-free" },
+      };
+      const displayPlan = user.role === "admin" ? "admin" : plan;
+      const cfg = badgeConfig[displayPlan] || badgeConfig.free;
+      elements.planBadge.textContent = cfg.text;
+      elements.planBadge.className = "plan-badge " + cfg.cls;
+      elements.planBadge.classList.remove("hidden");
+    }
   } else {
     elements.authUser.classList.add('hidden');
     elements.authAnonymous.classList.remove('hidden');
     if (elements.adminLink) {
       elements.adminLink.classList.add('hidden');
+    }
+    if (elements.planBadge) {
+      elements.planBadge.classList.add('hidden');
     }
   }
 
