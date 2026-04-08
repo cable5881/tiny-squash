@@ -3,23 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TinySquash — 在线图片压缩</title>
+    <title>TinySquash — 免费在线图片压缩工具 | 支持 JPG、PNG、WebP 压缩与格式转换</title>
     <meta
       name="description"
-      content="纯前端在线图片压缩工具，支持 JPG、PNG、WebP 压缩与格式转换，所有处理都在浏览器本地完成。"
+      content="TinySquash 是一款免费的纯前端在线图片压缩工具，支持 JPG、PNG、WebP 格式的压缩与转换，所有处理在浏览器本地完成，无需上传服务器，隐私安全有保障。提供 Free 和 Pro 两种计划，Pro 用户可享受无限次压缩、批量打包下载和全格式支持，适合设计师、前端开发者和内容创作者日常使用。"
     />
     <link rel="canonical" href="https://tinysquash.pages.dev/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://tinysquash.pages.dev/" />
-    <meta property="og:title" content="TinySquash — 在线图片压缩" />
-    <meta property="og:description" content="纯前端在线图片压缩工具，支持 JPG、PNG、WebP 压缩与格式转换，所有处理都在浏览器本地完成。" />
+    <meta property="og:title" content="TinySquash — 免费在线图片压缩工具 | JPG/PNG/WebP 压缩与格式转换" />
+    <meta property="og:description" content="TinySquash 是一款免费的纯前端在线图片压缩工具，支持 JPG、PNG、WebP 格式的压缩与转换，所有处理在浏览器本地完成，无需上传服务器，隐私安全有保障。提供 Free 和 Pro 两种计划，Pro 用户可享受无限次压缩、批量打包下载和全格式支持，适合设计师、前端开发者和内容创作者日常使用。" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="TinySquash — 在线图片压缩" />
-    <meta name="twitter:description" content="纯前端在线图片压缩工具，支持 JPG、PNG、WebP 压缩与格式转换。" />
+    <meta name="twitter:title" content="TinySquash — 免费在线图片压缩工具" />
+    <meta name="twitter:description" content="免费在线图片压缩，支持 JPG、PNG、WebP，浏览器本地处理，隐私安全。" />
     <meta name="keywords" content="图片压缩,在线压缩,JPG压缩,PNG压缩,WebP转换,图片优化,前端压缩,TinySquash" />
     <link rel="stylesheet" href="./style.css?v=mnjxyyqq" />
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
     <script type="module" src="./app.js?v=mnjxyyqq" defer></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "TinySquash",
+      "url": "https://tinysquash.pages.dev",
+      "description": "免费在线图片压缩工具，支持 JPG、PNG、WebP 格式压缩与转换，浏览器本地处理，隐私安全。",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "AggregateOffer",
+        "lowPrice": "0",
+        "highPrice": "29",
+        "priceCurrency": "USD",
+        "offerCount": "2"
+      },
+      "browserRequirements": "Requires a modern web browser with JavaScript enabled"
+    }
+    </script>
   </head>
   <body>
     <div class="page-shell">
@@ -81,7 +100,7 @@
 
           <div class="settings-card">
             <div class="settings-header">
-              <h3>压缩设置</h3>
+              <h2>压缩设置</h2>
               <span id="status-text">等待上传图片</span>
             </div>
 
@@ -124,7 +143,7 @@
 
         <section class="panel result-panel">
           <div class="panel-title-row">
-            <h3>压缩结果</h3>
+            <h2>压缩结果</h2>
             <p>预览、对比并下载压缩后的图片</p>
           </div>
 
@@ -149,7 +168,7 @@
 
           <section id="compare-section" class="compare-card hidden">
             <div class="panel-title-row">
-              <h3>前后对比</h3>
+              <h2>前后对比</h2>
               <p>拖动滑块查看压缩前后差异</p>
             </div>
             <div id="compare-container"></div>
