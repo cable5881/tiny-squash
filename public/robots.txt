@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tinysquash.pages.dev/sitemap.xml
+
+# Static assets
+User-agent: *
+Disallow: /api/
+Disallow: /admin.html
